@@ -1,0 +1,12 @@
+.env
+*.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+certs/
+*.pem
+*.key
+data/photos/*
+!data/photos/.gitkeep
+*.log

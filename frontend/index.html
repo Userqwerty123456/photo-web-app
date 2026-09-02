@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <h1>📸 Photo App</h1>
+        <p class="subtitle">Сделай фото и сохрани его</p>
+
+        <section class="camera-card">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+
+            <div id="camera-placeholder">
+                <span>📷</span>
+                <p>Камера выключена</p>
+            </div>
+        </section>
+
+        <div class="buttons">
+            <button id="startCamera" class="primary">📷 Включить камеру</button>
+            <button id="takePhoto" class="primary hidden">⭕ Сделать фото</button>
+            <button id="switchCamera" class="secondary hidden">🔄 Камера</button>
+        </div>
+
+        <div id="preview" class="preview hidden">
+            <h2>Предпросмотр</h2>
+            <img id="previewImage" alt="Предпросмотр фото">
+            <button id="uploadPhoto" class="primary">☁️ Сохранить фото</button>
+            <button id="retakePhoto" class="secondary">↩️ Переснять</button>
+        </div>
+
+        <p id="status" class="status"></p>
+
+        <section class="gallery">
+            <h2>🖼 Мои фотографии</h2>
+            <div id="gallery" class="gallery-grid"></div>
+        </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
