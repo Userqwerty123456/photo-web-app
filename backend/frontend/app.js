@@ -41,31 +41,31 @@ function status(message) {
    ========================= */
 
 async function startCamera() {
+
     try {
 
-        // Останавливаем предыдущую камеру
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
 
         stream = await navigator.mediaDevices.getUserMedia({
+
             video: {
                 facingMode: facingMode,
+
                 width: {
                     ideal: 1920
                 },
+
                 height: {
                     ideal: 1080
                 }
             },
+
             audio: false
         });
 
         video.srcObject = stream;
-
-        // ВАЖНО:
-        // изображение камеры НЕ зеркалим
-        video.style.transform = "scaleX(1)";
 
         video.style.display = "block";
 
@@ -74,23 +74,23 @@ async function startCamera() {
         ).style.display = "none";
 
         startCameraButton.classList.add("hidden");
+
         takePhotoButton.classList.remove("hidden");
+
         switchCameraButton.classList.remove("hidden");
 
-        status(
-            facingMode === "user"
-                ? "Передняя камера готова."
-                : "Задняя камера готова."
-        );
+        status("Камера готова.");
 
     } catch (error) {
 
         console.error("Ошибка камеры:", error);
 
         status(
-            "❌ Не удалось открыть камеру. Разреши доступ к камере в браузере."
+            "Не удалось открыть камеру. Разреши доступ к камере в браузере."
         );
+
     }
+
 }
 
 
@@ -117,7 +117,6 @@ function takePhoto() {
 
         const context = canvas.getContext("2d");
 
-        // Обычная матрица без зеркалирования
         context.setTransform(
             1,
             0,
@@ -127,8 +126,20 @@ function takePhoto() {
             0
         );
 
-        // Рисуем кадр как есть.
-        // НИКАКОГО scale(-1, 1).
+        if (facingMode === "user") {
+
+            context.translate(
+                canvas.width,
+                0
+            );
+
+            context.scale(
+                -1,
+                1
+            );
+
+        }
+
         context.drawImage(
             video,
             0,
@@ -138,6 +149,7 @@ function takePhoto() {
         );
 
         canvas.toBlob(
+
             blob => {
 
                 if (!blob) {
@@ -156,14 +168,21 @@ function takePhoto() {
                 previewImage.src =
                     URL.createObjectURL(blob);
 
-                preview.classList.remove("hidden");
+                preview.classList.remove(
+                    "hidden"
+                );
 
                 resolve(blob);
+
             },
+
             "image/jpeg",
+
             0.92
         );
+
     });
+
 }
 
 
@@ -208,11 +227,14 @@ async function uploadPhoto() {
                 data.detail ||
                 "Ошибка загрузки"
             );
+
         }
 
         status("✅ Фото сохранено!");
 
-        preview.classList.add("hidden");
+        preview.classList.add(
+            "hidden"
+        );
 
         photoBlob = null;
 
@@ -232,7 +254,9 @@ async function uploadPhoto() {
     } finally {
 
         uploadPhotoButton.disabled = false;
+
     }
+
 }
 
 
@@ -244,11 +268,14 @@ function retakePhoto() {
 
     photoBlob = null;
 
-    preview.classList.add("hidden");
+    preview.classList.add(
+        "hidden"
+    );
 
     status(
         "Можно сделать новый снимок."
     );
+
 }
 
 
@@ -264,6 +291,7 @@ async function switchCamera() {
             : "user";
 
     await startCamera();
+
 }
 
 
@@ -277,12 +305,6 @@ async function loadGallery() {
 
         const response =
             await fetch("/api/photos");
-
-        if (!response.ok) {
-            throw new Error(
-                "Не удалось загрузить галерею"
-            );
-        }
 
         const data =
             await response.json();
@@ -303,22 +325,27 @@ async function loadGallery() {
         data.photos.forEach(photo => {
 
             const card =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             card.className =
                 "photo-card";
 
             const img =
-                document.createElement("img");
+                document.createElement(
+                    "img"
+                );
 
             img.src = photo.url;
 
             img.alt =
                 "Фотография";
 
-            // Кнопка удаления
             const deleteButton =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
 
             deleteButton.className =
                 "delete-photo";
@@ -328,8 +355,6 @@ async function loadGallery() {
 
             deleteButton.title =
                 "Удалить фотографию";
-
-            deleteButton.type = "button";
 
             deleteButton.addEventListener(
                 "click",
@@ -343,6 +368,7 @@ async function loadGallery() {
             );
 
             gallery.appendChild(card);
+
         });
 
     } catch (error) {
@@ -352,9 +378,8 @@ async function loadGallery() {
             error
         );
 
-        gallery.innerHTML =
-            "<p>❌ Не удалось загрузить фотографии.</p>";
     }
+
 }
 
 
@@ -375,8 +400,6 @@ async function deletePhoto(photo) {
 
     try {
 
-        status("Удаление фотографии...");
-
         const response =
             await fetch(
                 `/api/photos/${encodeURIComponent(photo.filename)}`,
@@ -394,13 +417,13 @@ async function deletePhoto(photo) {
                 data.detail ||
                 "Не удалось удалить фото"
             );
+
         }
 
         status(
             "🗑️ Фото удалено."
         );
 
-        // Обновляем галерею
         await loadGallery();
 
     } catch (error) {
@@ -413,7 +436,9 @@ async function deletePhoto(photo) {
         status(
             "❌ " + error.message
         );
+
     }
+
 }
 
 
@@ -444,6 +469,7 @@ async function checkRobotSignal() {
         if (data.capture === true) {
 
             startRobotSelfie();
+
         }
 
     } catch (error) {
@@ -452,7 +478,9 @@ async function checkRobotSignal() {
             "Ошибка проверки сигнала робота:",
             error
         );
+
     }
+
 }
 
 
@@ -491,7 +519,6 @@ async function startRobotSelfie() {
             "robot-counting"
         );
 
-        // 5 → 4 → 3 → 2 → 1
         for (
             let count = 5;
             count >= 1;
@@ -523,6 +550,7 @@ async function startRobotSelfie() {
                         1000
                     )
             );
+
         }
 
         countdown.classList.add(
@@ -539,7 +567,6 @@ async function startRobotSelfie() {
 
         status("📸 Снимок!");
 
-        // Делаем фото
         await takePhoto();
 
         await new Promise(
@@ -554,7 +581,6 @@ async function startRobotSelfie() {
             "hidden"
         );
 
-        // Автоматически сохраняем
         await uploadPhoto();
 
     } catch (error) {
@@ -584,7 +610,9 @@ async function startRobotSelfie() {
     } finally {
 
         captureInProgress = false;
+
     }
+
 }
 
 
@@ -596,7 +624,6 @@ startCameraButton.addEventListener(
     "click",
     startCamera
 );
-
 
 takePhotoButton.addEventListener(
     "click",
@@ -615,22 +642,21 @@ takePhotoButton.addEventListener(
             status(
                 "❌ " + error.message
             );
+
         }
+
     }
 );
-
 
 switchCameraButton.addEventListener(
     "click",
     switchCamera
 );
 
-
 uploadPhotoButton.addEventListener(
     "click",
     uploadPhoto
 );
-
 
 retakePhotoButton.addEventListener(
     "click",

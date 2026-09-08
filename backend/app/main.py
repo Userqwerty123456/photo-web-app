@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from .routes.photos import router as photos_router
+from .routes.robot import router as robot_router
 
 BASE_DIR = Path("/app")
 PHOTO_DIR = BASE_DIR / "data" / "photos"
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(photos_router, prefix="/api")
+app.include_router(robot_router, prefix="/api/robot")
 
 app.mount("/photos", StaticFiles(directory=str(PHOTO_DIR)), name="photos")
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")

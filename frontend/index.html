@@ -2,46 +2,94 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Photo App</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
-    <main class="container">
-        <h1>📸 Photo App</h1>
-        <p class="subtitle">Сделай фото и сохрани его</p>
 
-        <section class="camera-card">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas"></canvas>
+<main class="app">
 
-            <div id="camera-placeholder">
-                <span>📷</span>
-                <p>Камера выключена</p>
-            </div>
-        </section>
+    <header class="topbar">
+        <h1>RENT ROBOT SELFIE</h1>
+    </header>
 
-        <div class="buttons">
-            <button id="startCamera" class="primary">📷 Включить камеру</button>
-            <button id="takePhoto" class="primary hidden">⭕ Сделать фото</button>
-            <button id="switchCamera" class="secondary hidden">🔄 Камера</button>
+    <section class="camera-card">
+
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+
+        <div id="camera-placeholder" class="camera-placeholder">
+            <span>📷</span>
+            <p>Камера выключена</p>
         </div>
 
-        <div id="preview" class="preview hidden">
-            <h2>Предпросмотр</h2>
-            <img id="previewImage" alt="Предпросмотр фото">
-            <button id="uploadPhoto" class="primary">☁️ Сохранить фото</button>
-            <button id="retakePhoto" class="secondary">↩️ Переснять</button>
+        <!-- Таймер робота -->
+        <div id="robot-countdown" class="robot-countdown hidden">
+            <div id="countdown-number">5</div>
+            <div id="countdown-text">Селфи через 5 секунд...</div>
         </div>
 
-        <p id="status" class="status"></p>
+        <!-- Вспышка после снимка -->
+        <div id="robot-snapshot" class="robot-snapshot hidden">
+            <div>📸</div>
+            <span>СНИМОК!</span>
+        </div>
 
-        <section class="gallery">
-            <h2>🖼 Мои фотографии</h2>
-            <div id="gallery" class="gallery-grid"></div>
-        </section>
-    </main>
+    </section>
 
-    <script src="/static/app.js"></script>
+    <div class="camera-controls">
+
+        <button id="startCamera" class="control-button primary">
+            📷 Включить камеру
+        </button>
+
+        <button id="takePhoto" class="control-button primary hidden">
+            ⭕ Сделать фото
+        </button>
+
+        <button id="switchCamera" class="control-button secondary hidden">
+            🔄 Камера
+        </button>
+
+    </div>
+
+    <!-- Предпросмотр -->
+    <section id="preview" class="preview hidden">
+
+        <h2>Предпросмотр</h2>
+
+        <img id="previewImage" alt="Предпросмотр фото">
+
+        <div class="preview-buttons">
+
+            <button id="uploadPhoto" class="control-button primary">
+                ☁️ Сохранить
+            </button>
+
+            <button id="retakePhoto" class="control-button secondary">
+                ↩️ Переснять
+            </button>
+
+        </div>
+
+    </section>
+
+    <p id="status" class="status"></p>
+
+    <!-- Галерея -->
+    <section class="gallery">
+
+        <h2>🖼 Фотографии</h2>
+
+        <div id="gallery" class="gallery-grid"></div>
+
+    </section>
+
+</main>
+
+<script src="/static/app.js?v=3"></script>
+
 </body>
 </html>
