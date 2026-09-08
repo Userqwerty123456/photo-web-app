@@ -2,94 +2,242 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Photo App</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <title>Photo Web App</title>
+
+    <link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 
 <body>
 
-<main class="app">
+<div class="app">
 
-    <header class="topbar">
-        <h1>RENT ROBOT SELFIE</h1>
+    <header class="header">
+        <h1>📸 Photo Web App</h1>
+        <p>Камера и фотографии</p>
     </header>
 
-    <section class="camera-card">
 
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas"></canvas>
+    <!-- =========================
+         CAMERA SCREEN
+    ========================== -->
 
-        <div id="camera-placeholder" class="camera-placeholder">
-            <span>📷</span>
-            <p>Камера выключена</p>
+    <section id="cameraScreen" class="camera-screen">
+
+        <div class="camera-container">
+
+            <video
+                id="video"
+                autoplay
+                playsinline
+                muted
+            ></video>
+
+            <div
+                id="countdown"
+                class="countdown"
+            ></div>
+
         </div>
 
-        <!-- Таймер робота -->
-        <div id="robot-countdown" class="robot-countdown hidden">
-            <div id="countdown-number">5</div>
-            <div id="countdown-text">Селфи через 5 секунд...</div>
-        </div>
 
-        <!-- Вспышка после снимка -->
-        <div id="robot-snapshot" class="robot-snapshot hidden">
-            <div>📸</div>
-            <span>СНИМОК!</span>
-        </div>
+        <div class="camera-controls">
 
-    </section>
-
-    <div class="camera-controls">
-
-        <button id="startCamera" class="control-button primary">
-            📷 Включить камеру
-        </button>
-
-        <button id="takePhoto" class="control-button primary hidden">
-            ⭕ Сделать фото
-        </button>
-
-        <button id="switchCamera" class="control-button secondary hidden">
-            🔄 Камера
-        </button>
-
-    </div>
-
-    <!-- Предпросмотр -->
-    <section id="preview" class="preview hidden">
-
-        <h2>Предпросмотр</h2>
-
-        <img id="previewImage" alt="Предпросмотр фото">
-
-        <div class="preview-buttons">
-
-            <button id="uploadPhoto" class="control-button primary">
-                ☁️ Сохранить
+            <button
+                id="startCamera"
+                class="button primary"
+                type="button"
+            >
+                📷 Включить камеру
             </button>
 
-            <button id="retakePhoto" class="control-button secondary">
-                ↩️ Переснять
+            <button
+                id="rotateCamera"
+                class="button secondary"
+                type="button"
+            >
+                🔄 Повернуть камеру
+            </button>
+
+            <button
+                id="takePhoto"
+                class="button success"
+                type="button"
+            >
+                📸 Сделать фото
+            </button>
+
+            <button
+                id="stopCamera"
+                class="button danger"
+                type="button"
+            >
+                ⛔ Выключить камеру
             </button>
 
         </div>
 
     </section>
 
-    <p id="status" class="status"></p>
 
-    <!-- Галерея -->
-    <section class="gallery">
+    <!-- =========================
+         PHOTO PREVIEW SCREEN
+    ========================== -->
 
-        <h2>🖼 Фотографии</h2>
+    <section
+        id="photoPreviewScreen"
+        class="photo-preview-screen hidden"
+    >
 
-        <div id="gallery" class="gallery-grid"></div>
+        <div class="fullscreen-preview">
+
+            <canvas
+                id="canvas"
+            ></canvas>
+
+        </div>
+
+
+        <div class="preview-controls">
+
+            <button
+                id="savePhoto"
+                class="button success big-button"
+                type="button"
+            >
+                💾 Сохранить
+            </button>
+
+            <button
+                id="retakePhoto"
+                class="button secondary big-button"
+                type="button"
+            >
+                🔄 Переснять
+            </button>
+
+        </div>
 
     </section>
 
-</main>
 
-<script src="/static/app.js?v=3"></script>
+    <!-- =========================
+         STATUS
+    ========================== -->
+
+    <section class="status-section">
+
+        <div
+            id="status"
+            class="status"
+        >
+            Готово
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         GALLERY
+    ========================== -->
+
+    <section class="gallery-section">
+
+        <div class="gallery-header">
+
+            <div>
+                <h2>🖼️ Отснятые фотографии</h2>
+
+                <p id="photoCount">
+                    Фото: 0
+                </p>
+            </div>
+
+            <button
+                id="refreshGallery"
+                class="button refresh-button"
+                type="button"
+            >
+                🔄 Обновить
+            </button>
+
+        </div>
+
+
+        <div
+            id="gallery"
+            class="gallery"
+        ></div>
+
+
+        <div
+            id="emptyGallery"
+            class="empty-gallery"
+        >
+            📷 Пока нет отснятых фотографий
+        </div>
+
+    </section>
+
+</div>
+
+
+<!-- =========================
+     FULLSCREEN PHOTO VIEWER
+========================== -->
+
+<div
+    id="photoModal"
+    class="photo-modal"
+>
+
+    <button
+        id="closeModal"
+        class="close-modal"
+        type="button"
+    >
+        ✕
+    </button>
+
+
+    <button
+        id="prevPhoto"
+        class="modal-navigation prev"
+        type="button"
+    >
+        ‹
+    </button>
+
+
+    <img
+        id="modalImage"
+        src=""
+        alt="Фотография"
+    >
+
+
+    <button
+        id="nextPhoto"
+        class="modal-navigation next"
+        type="button"
+    >
+        ›
+    </button>
+
+
+    <div
+        id="modalInfo"
+        class="modal-info"
+    ></div>
+
+</div>
+
+
+<script src="/static/app.js?v=5"></script>
 
 </body>
 </html>

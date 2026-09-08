@@ -1,72 +1,97 @@
-
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
     width: 100%;
     min-height: 100%;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #000;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: #111;
     color: #fff;
+
+    -webkit-tap-highlight-color: transparent;
 }
+
+button {
+    font-family: inherit;
+}
+
+
+/* =========================================================
+   APP
+========================================================= */
 
 .app {
     width: 100%;
-    min-height: 100vh;
-    background: #000;
+    max-width: 1100px;
+
+    margin: 0 auto;
+
+    padding:
+        20px
+        16px
+        50px;
 }
 
-/* =========================
-   ВЕРХНЯЯ ПАНЕЛЬ
-   ========================= */
 
-.topbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 30;
+/* =========================================================
+   HEADER
+========================================================= */
 
-    padding: 16px 18px;
-
+.header {
     text-align: center;
 
-    background: linear-gradient(
-        to bottom,
-        rgba(0,0,0,.65),
-        transparent
-    );
+    margin-bottom: 25px;
 }
 
-.topbar h1 {
-    margin: 0;
-    font-size: 20px;
+.header h1 {
+    font-size: 30px;
+
+    margin-bottom: 8px;
 }
 
-/* =========================
-   КАМЕРА
-   ========================= */
+.header p {
+    color: #999;
 
-.camera-card {
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   CAMERA SCREEN
+========================================================= */
+
+.camera-screen {
+    width: 100%;
+}
+
+.camera-container {
     position: relative;
 
     width: 100%;
-    height: 75vh;
-    min-height: 450px;
+
+    aspect-ratio: 16 / 9;
+
+    background: #000;
+
+    border-radius: 18px;
 
     overflow: hidden;
 
-    background: #111;
+    box-shadow:
+        0 10px 40px
+        rgba(0, 0, 0, 0.5);
 }
-
-/* Видео */
 
 #video {
     display: block;
@@ -75,388 +100,686 @@ body {
     height: 100%;
 
     object-fit: cover;
+
+    /*
+     * НЕ зеркалим изображение.
+     */
+    transform: scaleX(1) !important;
 }
 
-/* Canvas */
 
-#canvas {
-    display: none;
-}
+/* =========================================================
+   COUNTDOWN
+========================================================= */
 
-/* Заглушка */
-
-.camera-placeholder {
+.countdown {
     position: absolute;
+
     inset: 0;
 
-    display: grid;
-    place-content: center;
+    display: flex;
 
-    text-align: center;
+    align-items: center;
+    justify-content: center;
 
-    color: #aaa;
+    pointer-events: none;
+
+    font-size: 130px;
+
+    font-weight: 900;
+
+    color: #fff;
+
+    text-shadow:
+        0 5px 30px
+        rgba(0, 0, 0, 0.9);
+
+    opacity: 0;
+
+    transform: scale(0.8);
+
+    transition:
+        opacity 0.2s,
+        transform 0.2s;
 }
 
-.camera-placeholder span {
-    font-size: 70px;
+.countdown.show {
+    opacity: 1;
+
+    transform: scale(1);
 }
 
-.camera-placeholder p {
-    margin-top: 10px;
-}
 
-/* =========================
-   КНОПКИ
-   ========================= */
+/* =========================================================
+   BUTTONS
+========================================================= */
 
 .camera-controls {
     display: flex;
 
-    gap: 10px;
-
-    padding: 14px;
-
-    background: #000;
-}
-
-.control-button {
-    flex: 1;
-
-    border: 0;
-    border-radius: 14px;
-
-    padding: 15px 18px;
-
-    font-size: 16px;
-    font-weight: 600;
-
-    cursor: pointer;
-}
-
-.primary {
-    background: #fff;
-    color: #000;
-}
-
-.secondary {
-    background: #333;
-    color: #fff;
-}
-
-.control-button:disabled {
-    opacity: .5;
-}
-
-/* =========================
-   ПРЕДПРОСМОТР
-   ========================= */
-
-.preview {
-    padding: 20px;
-
-    background: #111;
-
-    text-align: center;
-}
-
-.preview h2 {
-    margin-top: 0;
-}
-
-.preview img {
-    display: block;
-
-    width: 100%;
-    max-width: 600px;
-
-    margin: 0 auto 15px;
-
-    border-radius: 16px;
-}
-
-.preview-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-/* =========================
-   СТАТУС
-   ========================= */
-
-.status {
-    min-height: 24px;
-
-    margin: 0;
-
-    padding: 10px 15px;
-
-    text-align: center;
-
-    background: #000;
-
-    font-weight: 600;
-}
-
-/* =========================
-   ГАЛЕРЕЯ
-   ========================= */
-
-.gallery {
-    padding: 25px 14px 40px;
-
-    background: #111;
-}
-
-.gallery h2 {
-    margin-top: 0;
-
-    text-align: center;
-}
-
-/* Сетка фотографий */
-
-.gallery-grid {
-    display: grid;
-
-    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
 
     gap: 10px;
+
+    margin-top: 15px;
 }
 
-/* Карточка фотографии */
-
-.photo-card {
-    position: relative;
-
-    overflow: hidden;
+.button {
+    border: none;
 
     border-radius: 12px;
 
-    background: #222;
-}
+    padding: 14px 18px;
 
-.photo-card img {
-    display: block;
+    font-size: 16px;
 
-    width: 100%;
-    aspect-ratio: 1 / 1;
-
-    object-fit: cover;
-}
-
-/* Кнопка удаления */
-
-.delete-photo {
-    position: absolute;
-
-    right: 8px;
-    bottom: 8px;
-
-    width: 42px;
-    height: 42px;
-
-    border: 0;
-    border-radius: 50%;
-
-    background: rgba(0, 0, 0, .75);
-
-    color: white;
-
-    font-size: 20px;
+    font-weight: 700;
 
     cursor: pointer;
+
+    color: #fff;
+
+    background: #333;
+
+    transition:
+        transform 0.15s,
+        opacity 0.15s;
 }
 
-.delete-photo:active {
-    transform: scale(.9);
+.button:active {
+    transform: scale(0.96);
 }
 
-/* =========================
-   РОБОТ / ТАЙМЕР
-   ========================= */
-
-.robot-counting::after {
-    content: "";
-
-    position: absolute;
-    inset: 0;
-
-    background: rgba(0, 0, 0, .35);
-
-    pointer-events: none;
+.button:hover {
+    opacity: 0.9;
 }
 
-.robot-countdown {
-    position: absolute;
-    inset: 0;
-
-    z-index: 10;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-    justify-content: center;
-
-    color: white;
-
-    text-align: center;
-
-    pointer-events: none;
+.button.primary {
+    background: #2563eb;
 }
 
-.robot-countdown.hidden {
-    display: none;
+.button.secondary {
+    background: #555;
 }
 
-#countdown-number {
-    font-size: clamp(100px, 30vw, 240px);
-
-    font-weight: 800;
-
-    line-height: 1;
-
-    text-shadow: 0 4px 20px rgba(0, 0, 0, .8);
-
-    animation: countdown-pop .8s ease;
+.button.success {
+    background: #16a34a;
 }
 
-#countdown-text {
-    margin-top: 15px;
-
-    font-size: clamp(18px, 5vw, 32px);
-
-    font-weight: 600;
-
-    text-shadow: 0 2px 10px rgba(0, 0, 0, .8);
+.button.danger {
+    background: #dc2626;
 }
 
-@keyframes countdown-pop {
-
-    0% {
-        transform: scale(1.4);
-        opacity: 0;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-
+.refresh-button {
+    background: #444;
 }
 
-/* СНИМОК */
 
-.robot-snapshot {
-    position: absolute;
-    inset: 0;
+/* =========================================================
+   PHOTO PREVIEW
+========================================================= */
 
-    z-index: 20;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-    justify-content: center;
-
-    background: rgba(0, 0, 0, .7);
-
-    color: white;
-
-    text-align: center;
-
-    pointer-events: none;
+.photo-preview-screen {
+    width: 100%;
 }
-
-.robot-snapshot.hidden {
-    display: none;
-}
-
-.robot-snapshot div {
-    font-size: clamp(70px, 20vw, 150px);
-
-    line-height: 1;
-
-    animation: snapshot-flash .5s ease;
-}
-
-.robot-snapshot span {
-    margin-top: 15px;
-
-    font-size: clamp(28px, 8vw, 60px);
-
-    font-weight: 800;
-
-    letter-spacing: 3px;
-
-    animation: snapshot-flash .5s ease;
-}
-
-@keyframes snapshot-flash {
-
-    0% {
-        transform: scale(1.5);
-        opacity: 0;
-    }
-
-    40% {
-        transform: scale(1);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-
-}
-
-/* =========================
-   СКРЫТЬ
-   ========================= */
 
 .hidden {
     display: none !important;
 }
 
-/* =========================
-   ТЕЛЕФОН
-   ========================= */
+
+/*
+ * Экран предпросмотра фотографии.
+ */
+
+.fullscreen-preview {
+    width: 100%;
+
+    min-height: 70vh;
+
+    background: #000;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+#canvas {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    max-height: 75vh;
+
+    object-fit: contain;
+}
+
+
+/* =========================================================
+   PREVIEW BUTTONS
+========================================================= */
+
+.preview-controls {
+    display: flex;
+
+    gap: 12px;
+
+    margin-top: 15px;
+}
+
+.big-button {
+    flex: 1;
+
+    min-height: 55px;
+
+    font-size: 18px;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status-section {
+    margin-top: 20px;
+}
+
+.status {
+    padding: 14px 16px;
+
+    background: #1d1d1d;
+
+    border-radius: 12px;
+
+    color: #ccc;
+
+    text-align: center;
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   GALLERY
+========================================================= */
+
+.gallery-section {
+    margin-top: 35px;
+}
+
+.gallery-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 15px;
+}
+
+.gallery-header h2 {
+    font-size: 22px;
+
+    margin-bottom: 5px;
+}
+
+#photoCount {
+    color: #888;
+
+    font-size: 14px;
+}
+
+.gallery {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(150px, 1fr)
+        );
+
+    gap: 12px;
+}
+
+.gallery-item {
+    position: relative;
+
+    aspect-ratio: 1 / 1;
+
+    overflow: hidden;
+
+    border-radius: 14px;
+
+    background: #222;
+}
+
+.gallery-item img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s;
+}
+
+.gallery-item img:hover {
+    transform: scale(1.04);
+}
+
+
+/* =========================================================
+   DELETE BUTTON
+========================================================= */
+
+.delete-photo {
+    position: absolute;
+
+    right: 8px;
+    top: 8px;
+
+    width: 38px;
+    height: 38px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background:
+        rgba(0, 0, 0, 0.75);
+
+    color: #fff;
+
+    font-size: 18px;
+
+    cursor: pointer;
+
+    z-index: 2;
+}
+
+.delete-photo:active {
+    transform: scale(0.9);
+}
+
+
+/* =========================================================
+   EMPTY GALLERY
+========================================================= */
+
+.empty-gallery {
+    padding: 40px 20px;
+
+    text-align: center;
+
+    color: #666;
+
+    background: #181818;
+
+    border-radius: 15px;
+}
+
+.empty-gallery.hidden {
+    display: none;
+}
+
+
+/* =========================================================
+   PHOTO MODAL
+========================================================= */
+
+.photo-modal {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(0, 0, 0, 0.96);
+
+    padding:
+        60px
+        60px
+        70px;
+}
+
+.photo-modal.show {
+    display: flex;
+}
+
+#modalImage {
+    display: block;
+
+    max-width: 90vw;
+    max-height: 82vh;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
+
+    border-radius: 8px;
+
+    user-select: none;
+}
+
+
+/* =========================================================
+   CLOSE MODAL
+========================================================= */
+
+.close-modal {
+    position: absolute;
+
+    top: 18px;
+    right: 18px;
+
+    width: 48px;
+    height: 48px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, 0.12);
+
+    color: #fff;
+
+    font-size: 24px;
+
+    cursor: pointer;
+
+    z-index: 10001;
+}
+
+
+/* =========================================================
+   MODAL NAVIGATION
+========================================================= */
+
+.modal-navigation {
+    position: absolute;
+
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+
+    width: 50px;
+    height: 70px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.12);
+
+    color: #fff;
+
+    font-size: 50px;
+
+    line-height: 50px;
+
+    cursor: pointer;
+
+    z-index: 10001;
+}
+
+.modal-navigation.prev {
+    left: 15px;
+}
+
+.modal-navigation.next {
+    right: 15px;
+}
+
+
+/* =========================================================
+   MODAL INFO
+========================================================= */
+
+.modal-info {
+    position: absolute;
+
+    bottom: 20px;
+
+    left: 0;
+    right: 0;
+
+    text-align: center;
+
+    color: #aaa;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 600px) {
 
-    .camera-card {
-        height: 78vh;
-        min-height: 0;
+    .app {
+        padding:
+            10px
+            8px
+            30px;
     }
+
+
+    /*
+     * На телефоне камера занимает почти весь экран.
+     */
+
+    .header {
+        display: none;
+    }
+
+
+    .camera-container {
+        position: relative;
+
+        width: 100vw;
+
+        margin-left: -8px;
+
+        height: 72vh;
+
+        min-height: 500px;
+
+        aspect-ratio: auto;
+
+        border-radius: 0;
+    }
+
+
+    #video {
+        width: 100%;
+        height: 100%;
+
+        object-fit: cover;
+    }
+
 
     .camera-controls {
-        padding: 10px;
+        margin-top: 10px;
+
+        display: grid;
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 8px;
     }
 
-    .control-button {
-        padding: 14px 10px;
-        font-size: 15px;
+
+    .camera-controls .button {
+        width: 100%;
+
+        padding: 13px 8px;
+
+        font-size: 14px;
     }
+
+
+    .camera-controls
+    .button.primary {
+        grid-column: span 2;
+    }
+
+
+    .countdown {
+        font-size: 100px;
+    }
+
+
+    /*
+     * Фото после съёмки.
+     */
+
+    .fullscreen-preview {
+        width: 100vw;
+
+        margin-left: -8px;
+
+        min-height: 78vh;
+
+        height: 78vh;
+
+        border-radius: 0;
+    }
+
+
+    #canvas {
+        width: 100%;
+        height: 100%;
+
+        max-height: none;
+
+        object-fit: contain;
+    }
+
+
+    .preview-controls {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 8px;
+
+        margin-top: 10px;
+    }
+
+
+    .big-button {
+        min-height: 58px;
+
+        font-size: 17px;
+    }
+
+
+    .gallery-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .refresh-button {
+        width: 100%;
+    }
+
 
     .gallery {
-        padding-bottom: 30px;
+        grid-template-columns:
+            repeat(2, 1fr);
+
+        gap: 8px;
+    }
+
+
+    .photo-modal {
+        padding:
+            55px
+            10px
+            55px;
+    }
+
+
+    #modalImage {
+        max-width: 96vw;
+
+        max-height: 80vh;
+    }
+
+
+    .modal-navigation {
+        width: 42px;
+
+        height: 58px;
+
+        font-size: 42px;
+    }
+
+
+    .modal-navigation.prev {
+        left: 5px;
+    }
+
+
+    .modal-navigation.next {
+        right: 5px;
     }
 
 }
 
-/* Очень маленькие экраны */
 
-@media (max-height: 650px) {
+/* =========================================================
+   VERY SMALL PHONE
+========================================================= */
 
-    .camera-card {
-        height: 70vh;
+@media (max-width: 380px) {
+
+    .camera-container {
+        height: 68vh;
+
+        min-height: 430px;
     }
 
-}
 
-#video {
-    transform: scaleX(1) !important;
+    .camera-controls {
+        grid-template-columns: 1fr;
+    }
+
+
+    .camera-controls
+    .button.primary {
+        grid-column: auto;
+    }
+
+
+    .gallery {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
 }

@@ -1,123 +1,527 @@
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
+"use strict";
 
-const preview = document.getElementById("preview");
-const previewImage = document.getElementById("previewImage");
 
-const gallery = document.getElementById("gallery");
-const statusText = document.getElementById("status");
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
-const startCameraButton = document.getElementById("startCamera");
-const takePhotoButton = document.getElementById("takePhoto");
-const switchCameraButton = document.getElementById("switchCamera");
+const video =
+    document.getElementById("video");
 
-const uploadPhotoButton = document.getElementById("uploadPhoto");
-const retakePhotoButton = document.getElementById("retakePhoto");
+const canvas =
+    document.getElementById("canvas");
 
-const countdown = document.getElementById("robot-countdown");
-const countdownNumber = document.getElementById("countdown-number");
-const countdownText = document.getElementById("countdown-text");
+const cameraScreen =
+    document.getElementById("cameraScreen");
 
-const snapshot = document.getElementById("robot-snapshot");
-const cameraCard = document.querySelector(".camera-card");
+const photoPreviewScreen =
+    document.getElementById(
+        "photoPreviewScreen"
+    );
+
+const startCameraButton =
+    document.getElementById(
+        "startCamera"
+    );
+
+const rotateCameraButton =
+    document.getElementById(
+        "rotateCamera"
+    );
+
+const takePhotoButton =
+    document.getElementById(
+        "takePhoto"
+    );
+
+const stopCameraButton =
+    document.getElementById(
+        "stopCamera"
+    );
+
+const savePhotoButton =
+    document.getElementById(
+        "savePhoto"
+    );
+
+const retakePhotoButton =
+    document.getElementById(
+        "retakePhoto"
+    );
+
+const statusElement =
+    document.getElementById(
+        "status"
+    );
+
+const countdownElement =
+    document.getElementById(
+        "countdown"
+    );
+
+const galleryElement =
+    document.getElementById(
+        "gallery"
+    );
+
+const emptyGalleryElement =
+    document.getElementById(
+        "emptyGallery"
+    );
+
+const photoCountElement =
+    document.getElementById(
+        "photoCount"
+    );
+
+const refreshGalleryButton =
+    document.getElementById(
+        "refreshGallery"
+    );
+
+const photoModal =
+    document.getElementById(
+        "photoModal"
+    );
+
+const modalImage =
+    document.getElementById(
+        "modalImage"
+    );
+
+const closeModalButton =
+    document.getElementById(
+        "closeModal"
+    );
+
+const prevPhotoButton =
+    document.getElementById(
+        "prevPhoto"
+    );
+
+const nextPhotoButton =
+    document.getElementById(
+        "nextPhoto"
+    );
+
+const modalInfo =
+    document.getElementById(
+        "modalInfo"
+    );
+
+
+/* =========================================================
+   STATE
+========================================================= */
 
 let stream = null;
+
+
+/*
+ * user = фронтальная
+ * environment = основная
+ */
+
 let facingMode = "user";
-let photoBlob = null;
-let captureInProgress = false;
 
 
-/* =========================
+/*
+ * Фотографии с сервера.
+ */
+
+let photos = [];
+
+
+/*
+ * Индекс фотографии,
+ * открытой в просмотрщике.
+ */
+
+let currentPhotoIndex = -1;
+
+
+/*
+ * Фото, которое сейчас
+ * находится в предпросмотре
+ * и ещё НЕ сохранено.
+ */
+
+let pendingPhotoBlob = null;
+
+
+/*
+ * Чтобы два отсчёта одновременно
+ * не запускались.
+ */
+
+let countdownRunning = false;
+
+
+/*
+ * Опрос команды робота.
+ */
+
+let robotPolling = null;
+
+
+/* =========================================================
    STATUS
-   ========================= */
+========================================================= */
 
 function status(message) {
-    statusText.textContent = message;
+
+    if (!statusElement) {
+        return;
+    }
+
+    statusElement.textContent =
+        message;
+
 }
 
 
-/* =========================
-   КАМЕРА
-   ========================= */
+/* =========================================================
+   CAMERA
+========================================================= */
 
 async function startCamera() {
+
     try {
 
-        // Останавливаем предыдущую камеру
+        status(
+            "📷 Запрашиваем доступ к камере..."
+        );
+
+
+        /*
+         * Останавливаем старый поток.
+         */
+
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+
+            stream
+                .getTracks()
+                .forEach(
+                    track =>
+                        track.stop()
+                );
+
         }
 
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: facingMode,
-                width: {
-                    ideal: 1920
-                },
-                height: {
-                    ideal: 1080
-                }
-            },
-            audio: false
-        });
 
-        video.srcObject = stream;
+        /*
+         * Проверяем поддержку камеры.
+         */
 
-        // ВАЖНО:
-        // изображение камеры НЕ зеркалим
-        video.style.transform = "scaleX(1)";
+        if (
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ) {
 
-        video.style.display = "block";
+            throw new Error(
+                "Браузер не поддерживает камеру."
+            );
 
-        document.getElementById(
-            "camera-placeholder"
-        ).style.display = "none";
+        }
 
-        startCameraButton.classList.add("hidden");
-        takePhotoButton.classList.remove("hidden");
-        switchCameraButton.classList.remove("hidden");
+
+        /*
+         * Запускаем выбранную камеру.
+         */
+
+        stream =
+            await navigator
+                .mediaDevices
+                .getUserMedia({
+
+                    video: {
+
+                        facingMode:
+                            facingMode,
+
+                        width: {
+                            ideal: 1920
+                        },
+
+                        height: {
+                            ideal: 1080
+                        }
+
+                    },
+
+                    audio: false
+
+                });
+
+
+        video.srcObject =
+            stream;
+
+
+        /*
+         * Никакого зеркала.
+         */
+
+        video.style.transform =
+            "scaleX(1)";
+
+
+        await video.play();
+
+
+        /*
+         * Показываем камеру.
+         */
+
+        cameraScreen
+            .classList
+            .remove("hidden");
+
+        photoPreviewScreen
+            .classList
+            .add("hidden");
+
 
         status(
             facingMode === "user"
-                ? "Передняя камера готова."
-                : "Задняя камера готова."
+                ? "🤳 Фронтальная камера включена."
+                : "📷 Основная камера включена."
         );
+
 
     } catch (error) {
 
-        console.error("Ошибка камеры:", error);
+        console.error(
+            "Camera error:",
+            error
+        );
+
+
+        stream = null;
+
 
         status(
-            "❌ Не удалось открыть камеру. Разреши доступ к камере в браузере."
+            "❌ Не удалось включить камеру: " +
+            error.message
         );
+
     }
+
 }
 
 
-/* =========================
-   СОЗДАТЬ ФОТО
-   ========================= */
+/* =========================================================
+   ROTATE CAMERA
+========================================================= */
 
-function takePhoto() {
+async function rotateCamera() {
 
-    return new Promise((resolve, reject) => {
+    /*
+     * Меняем камеру.
+     */
 
-        if (!stream) {
-            reject(new Error("Камера не запущена"));
-            return;
+    if (facingMode === "user") {
+
+        facingMode =
+            "environment";
+
+    } else {
+
+        facingMode =
+            "user";
+
+    }
+
+
+    status(
+        "🔄 Переключаем камеру..."
+    );
+
+
+    await startCamera();
+
+}
+
+
+/* =========================================================
+   STOP CAMERA
+========================================================= */
+
+function stopCamera() {
+
+    if (stream) {
+
+        stream
+            .getTracks()
+            .forEach(
+                track =>
+                    track.stop()
+            );
+
+    }
+
+
+    stream = null;
+
+    video.srcObject = null;
+
+
+    status(
+        "⛔ Камера выключена."
+    );
+
+}
+
+
+/* =========================================================
+   TAKE PHOTO
+========================================================= */
+
+async function takePhoto() {
+
+    if (countdownRunning) {
+        return;
+    }
+
+
+    if (!stream) {
+
+        status(
+            "❌ Сначала включите камеру."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        video.readyState <
+        HTMLMediaElement.HAVE_CURRENT_DATA
+    ) {
+
+        status(
+            "⏳ Камера ещё запускается..."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Запускаем обратный отсчёт.
+     */
+
+    await startCountdown();
+
+}
+
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
+
+async function startCountdown() {
+
+    if (countdownRunning) {
+        return;
+    }
+
+
+    countdownRunning = true;
+
+
+    try {
+
+        for (
+            let number = 5;
+            number >= 1;
+            number--
+        ) {
+
+            countdownElement.textContent =
+                number;
+
+            countdownElement
+                .classList
+                .add("show");
+
+
+            await sleep(1000);
+
         }
 
-        if (!video.videoWidth || !video.videoHeight) {
-            reject(new Error("Камера ещё не готова"));
-            return;
-        }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        countdownElement.textContent =
+            "📸";
 
-        const context = canvas.getContext("2d");
 
-        // Обычная матрица без зеркалирования
+        await sleep(350);
+
+
+        countdownElement
+            .classList
+            .remove("show");
+
+
+        /*
+         * Создаём фото,
+         * но пока НЕ сохраняем.
+         */
+
+        await createPhotoPreview();
+
+
+    } finally {
+
+        countdownElement
+            .classList
+            .remove("show");
+
+        countdownElement.textContent =
+            "";
+
+
+        countdownRunning = false;
+
+    }
+
+}
+
+
+/* =========================================================
+   CREATE PHOTO PREVIEW
+========================================================= */
+
+async function createPhotoPreview() {
+
+    try {
+
+        const width =
+            video.videoWidth || 1280;
+
+        const height =
+            video.videoHeight || 720;
+
+
+        canvas.width =
+            width;
+
+        canvas.height =
+            height;
+
+
+        const context =
+            canvas.getContext(
+                "2d"
+            );
+
+
+        /*
+         * Сбрасываем трансформацию.
+         */
+
         context.setTransform(
             1,
             0,
@@ -127,201 +531,414 @@ function takePhoto() {
             0
         );
 
-        // Рисуем кадр как есть.
-        // НИКАКОГО scale(-1, 1).
+
+        /*
+         * Рисуем реальное изображение.
+         *
+         * НЕ зеркалим.
+         */
+
         context.drawImage(
             video,
             0,
             0,
-            canvas.width,
-            canvas.height
+            width,
+            height
         );
 
-        canvas.toBlob(
-            blob => {
 
-                if (!blob) {
+        /*
+         * Получаем Blob.
+         */
 
-                    reject(
-                        new Error(
-                            "Не удалось создать фото"
-                        )
+        pendingPhotoBlob =
+            await new Promise(
+                resolve => {
+
+                    canvas.toBlob(
+                        resolve,
+                        "image/jpeg",
+                        0.92
                     );
 
-                    return;
                 }
+            );
 
-                photoBlob = blob;
 
-                previewImage.src =
-                    URL.createObjectURL(blob);
+        if (!pendingPhotoBlob) {
 
-                preview.classList.remove("hidden");
+            throw new Error(
+                "Не удалось создать фотографию."
+            );
 
-                resolve(blob);
-            },
-            "image/jpeg",
-            0.92
+        }
+
+
+        /*
+         * Переходим на экран
+         * просмотра.
+         */
+
+        cameraScreen
+            .classList
+            .add("hidden");
+
+        photoPreviewScreen
+            .classList
+            .remove("hidden");
+
+
+        status(
+            "📸 Фото готово. Сохранить или переснять?"
         );
-    });
+
+
+    } catch (error) {
+
+        console.error(
+            "Photo preview error:",
+            error
+        );
+
+
+        status(
+            "❌ Ошибка создания фото."
+        );
+
+    }
+
 }
 
 
-/* =========================
-   ЗАГРУЗКА ФОТО
-   ========================= */
+/* =========================================================
+   SAVE PHOTO
+========================================================= */
 
-async function uploadPhoto() {
+async function savePhoto() {
 
-    if (!photoBlob) {
+    if (!pendingPhotoBlob) {
+
+        status(
+            "❌ Нет фотографии для сохранения."
+        );
+
         return;
+
     }
 
-    const formData = new FormData();
-
-    formData.append(
-        "file",
-        photoBlob,
-        "photo.jpg"
-    );
-
-    uploadPhotoButton.disabled = true;
-
-    status("Загрузка фото...");
 
     try {
 
-        const response = await fetch(
-            "/api/upload",
-            {
-                method: "POST",
-                body: formData
-            }
+        status(
+            "☁️ Сохраняем фотографию..."
         );
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            pendingPhotoBlob,
+            "photo.jpg"
+        );
+
+
+        const response =
+            await fetch(
+                "/api/upload",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
 
         const data =
             await response.json();
+
 
         if (!response.ok) {
 
             throw new Error(
                 data.detail ||
-                "Ошибка загрузки"
+                "Не удалось сохранить фото."
             );
+
         }
 
-        status("✅ Фото сохранено!");
 
-        preview.classList.add("hidden");
+        /*
+         * Фото успешно сохранено.
+         */
 
-        photoBlob = null;
+        pendingPhotoBlob =
+            null;
+
+
+        status(
+            "✅ Фотография сохранена."
+        );
+
+
+        /*
+         * Обновляем галерею.
+         */
 
         await loadGallery();
+
+
+        /*
+         * Возвращаемся к камере.
+         */
+
+        photoPreviewScreen
+            .classList
+            .add("hidden");
+
+        cameraScreen
+            .classList
+            .remove("hidden");
+
 
     } catch (error) {
 
         console.error(
-            "Ошибка загрузки:",
+            "Save photo error:",
             error
         );
+
 
         status(
             "❌ " + error.message
         );
 
-    } finally {
-
-        uploadPhotoButton.disabled = false;
     }
+
 }
 
 
-/* =========================
-   ПЕРЕСНЯТЬ
-   ========================= */
+/* =========================================================
+   RETAKE PHOTO
+========================================================= */
 
-function retakePhoto() {
+async function retakePhoto() {
 
-    photoBlob = null;
+    /*
+     * Удаляем несохранённое фото
+     * из памяти.
+     */
 
-    preview.classList.add("hidden");
+    pendingPhotoBlob =
+        null;
+
+
+    /*
+     * Возвращаемся к камере.
+     */
+
+    photoPreviewScreen
+        .classList
+        .add("hidden");
+
+    cameraScreen
+        .classList
+        .remove("hidden");
+
 
     status(
-        "Можно сделать новый снимок."
+        "🔄 Готово. Можно переснять."
     );
+
+
+    /*
+     * Если поток камеры почему-то
+     * остановился — запускаем заново.
+     */
+
+    if (!stream) {
+
+        await startCamera();
+
+    }
+
 }
 
 
-/* =========================
-   ПЕРЕКЛЮЧИТЬ КАМЕРУ
-   ========================= */
+/* =========================================================
+   UPLOAD PHOTO
+========================================================= */
 
-async function switchCamera() {
+/*
+ * Оставляем отдельную функцию для совместимости
+ * с логикой приложения.
+ */
 
-    facingMode =
-        facingMode === "user"
-            ? "environment"
-            : "user";
+async function uploadPhoto() {
 
-    await startCamera();
+    if (!pendingPhotoBlob) {
+        return;
+    }
+
+    await savePhoto();
+
 }
 
 
-/* =========================
-   ГАЛЕРЕЯ
-   ========================= */
+/* =========================================================
+   LOAD GALLERY
+========================================================= */
 
 async function loadGallery() {
 
     try {
 
         const response =
-            await fetch("/api/photos");
-
-        if (!response.ok) {
-            throw new Error(
-                "Не удалось загрузить галерею"
+            await fetch(
+                "/api/photos",
+                {
+                    cache: "no-store"
+                }
             );
-        }
+
 
         const data =
             await response.json();
 
-        gallery.innerHTML = "";
 
-        if (
-            !data.photos ||
-            data.photos.length === 0
-        ) {
+        if (!response.ok) {
 
-            gallery.innerHTML =
-                "<p>Пока нет фотографий.</p>";
+            throw new Error(
+                data.detail ||
+                "Не удалось получить фотографии."
+            );
 
-            return;
         }
 
-        data.photos.forEach(photo => {
 
-            const card =
-                document.createElement("div");
+        photos =
+            Array.isArray(
+                data.photos
+            )
+                ? data.photos
+                : [];
 
-            card.className =
-                "photo-card";
 
-            const img =
-                document.createElement("img");
+        renderGallery();
 
-            img.src = photo.url;
 
-            img.alt =
-                "Фотография";
+    } catch (error) {
 
-            // Кнопка удаления
+        console.error(
+            "Gallery error:",
+            error
+        );
+
+
+        status(
+            "❌ Не удалось загрузить галерею."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RENDER GALLERY
+========================================================= */
+
+function renderGallery() {
+
+    galleryElement.innerHTML =
+        "";
+
+
+    photoCountElement.textContent =
+        `Фото: ${photos.length}`;
+
+
+    /*
+     * Нет фотографий.
+     */
+
+    if (photos.length === 0) {
+
+        emptyGalleryElement
+            .classList
+            .remove("hidden");
+
+        return;
+
+    }
+
+
+    emptyGalleryElement
+        .classList
+        .add("hidden");
+
+
+    /*
+     * Создаём карточки.
+     */
+
+    photos.forEach(
+        (photo, index) => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+            item.className =
+                "gallery-item";
+
+
+            const image =
+                document.createElement(
+                    "img"
+                );
+
+
+            image.src =
+                photo.url;
+
+            image.alt =
+                `Фотография ${index + 1}`;
+
+            image.loading =
+                "lazy";
+
+
+            /*
+             * Открыть фотографию.
+             */
+
+            image.addEventListener(
+                "click",
+                () => {
+
+                    openPhoto(index);
+
+                }
+            );
+
+
+            /*
+             * Удалить.
+             */
+
             const deleteButton =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
 
             deleteButton.className =
                 "delete-photo";
+
+            deleteButton.type =
+                "button";
 
             deleteButton.textContent =
                 "🗑️";
@@ -329,38 +946,43 @@ async function loadGallery() {
             deleteButton.title =
                 "Удалить фотографию";
 
-            deleteButton.type = "button";
 
             deleteButton.addEventListener(
                 "click",
-                () => deletePhoto(photo)
+                event => {
+
+                    event.stopPropagation();
+
+                    deletePhoto(
+                        photo
+                    );
+
+                }
             );
 
-            card.appendChild(img);
 
-            card.appendChild(
+            item.appendChild(
+                image
+            );
+
+            item.appendChild(
                 deleteButton
             );
 
-            gallery.appendChild(card);
-        });
 
-    } catch (error) {
+            galleryElement.appendChild(
+                item
+            );
 
-        console.error(
-            "Ошибка загрузки галереи:",
-            error
-        );
+        }
+    );
 
-        gallery.innerHTML =
-            "<p>❌ Не удалось загрузить фотографии.</p>";
-    }
 }
 
 
-/* =========================
-   УДАЛЕНИЕ ФОТО
-   ========================= */
+/* =========================================================
+   DELETE PHOTO
+========================================================= */
 
 async function deletePhoto(photo) {
 
@@ -369,282 +991,571 @@ async function deletePhoto(photo) {
             "Удалить эту фотографию?"
         );
 
+
     if (!confirmed) {
         return;
     }
 
+
     try {
 
-        status("Удаление фотографии...");
+        status(
+            "🗑️ Удаление фотографии..."
+        );
+
 
         const response =
             await fetch(
-                `/api/photos/${encodeURIComponent(photo.filename)}`,
+                `/api/photos/${encodeURIComponent(
+                    photo.filename
+                )}`,
                 {
                     method: "DELETE"
                 }
             );
 
+
         const data =
             await response.json();
+
 
         if (!response.ok) {
 
             throw new Error(
                 data.detail ||
-                "Не удалось удалить фото"
+                "Не удалось удалить фото."
             );
+
         }
+
 
         status(
             "🗑️ Фото удалено."
         );
 
-        // Обновляем галерею
+
         await loadGallery();
+
 
     } catch (error) {
 
         console.error(
-            "Ошибка удаления:",
+            "Delete error:",
             error
         );
+
 
         status(
             "❌ " + error.message
         );
+
     }
+
 }
 
 
-/* =========================
-   РОБОТ
-   ========================= */
+/* =========================================================
+   OPEN PHOTO
+========================================================= */
 
-async function checkRobotSignal() {
+function openPhoto(index) {
 
-    if (captureInProgress) {
+    if (!photos.length) {
         return;
     }
+
+
+    if (index < 0) {
+
+        index =
+            photos.length - 1;
+
+    }
+
+
+    if (
+        index >=
+        photos.length
+    ) {
+
+        index = 0;
+
+    }
+
+
+    currentPhotoIndex =
+        index;
+
+
+    const photo =
+        photos[
+            currentPhotoIndex
+        ];
+
+
+    modalImage.src =
+        photo.url;
+
+
+    modalInfo.textContent =
+        `${currentPhotoIndex + 1} / ${photos.length}`;
+
+
+    photoModal
+        .classList
+        .add("show");
+
+
+    document.body.style.overflow =
+        "hidden";
+
+}
+
+
+/* =========================================================
+   CLOSE PHOTO
+========================================================= */
+
+function closePhoto() {
+
+    photoModal
+        .classList
+        .remove("show");
+
+
+    modalImage.src =
+        "";
+
+
+    document.body.style.overflow =
+        "";
+
+}
+
+
+/* =========================================================
+   NEXT PHOTO
+========================================================= */
+
+function showNextPhoto() {
+
+    if (!photos.length) {
+        return;
+    }
+
+
+    currentPhotoIndex++;
+
+
+    if (
+        currentPhotoIndex >=
+        photos.length
+    ) {
+
+        currentPhotoIndex = 0;
+
+    }
+
+
+    openPhoto(
+        currentPhotoIndex
+    );
+
+}
+
+
+/* =========================================================
+   PREVIOUS PHOTO
+========================================================= */
+
+function showPreviousPhoto() {
+
+    if (!photos.length) {
+        return;
+    }
+
+
+    currentPhotoIndex--;
+
+
+    if (
+        currentPhotoIndex < 0
+    ) {
+
+        currentPhotoIndex =
+            photos.length - 1;
+
+    }
+
+
+    openPhoto(
+        currentPhotoIndex
+    );
+
+}
+
+
+/* =========================================================
+   SLEEP
+========================================================= */
+
+function sleep(ms) {
+
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
+    );
+
+}
+
+
+/* =========================================================
+   ROBOT
+========================================================= */
+
+async function checkRobotCommand() {
 
     try {
 
         const response =
             await fetch(
-                "/api/robot/status"
+                "/api/robot/status",
+                {
+                    cache: "no-store"
+                }
             );
+
 
         if (!response.ok) {
             return;
         }
 
+
         const data =
             await response.json();
 
-        if (data.capture === true) {
 
-            startRobotSelfie();
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Ошибка проверки сигнала робота:",
-            error
-        );
-    }
-}
-
-
-/* =========================
-   АВТОМАТИЧЕСКОЕ СЕЛФИ
-   ========================= */
-
-async function startRobotSelfie() {
-
-    if (captureInProgress) {
-        return;
-    }
-
-    if (!stream) {
-
-        status(
-            "Камера ещё не запущена."
-        );
-
-        return;
-    }
-
-    captureInProgress = true;
-
-    try {
-
-        countdown.classList.remove(
-            "hidden"
-        );
-
-        snapshot.classList.add(
-            "hidden"
-        );
-
-        cameraCard.classList.add(
-            "robot-counting"
-        );
-
-        // 5 → 4 → 3 → 2 → 1
-        for (
-            let count = 5;
-            count >= 1;
-            count--
+        if (
+            data.capture === true &&
+            !countdownRunning &&
+            !pendingPhotoBlob
         ) {
 
-            countdownNumber.textContent =
-                count;
-
-            countdownText.textContent =
-                `Селфи через ${count} секунд...`;
+            /*
+             * Робот попросил сделать фото.
+             */
 
             status(
-                `Селфи через ${count} секунд...`
+                "🤖 Робот дал команду на фото."
             );
 
-            countdownNumber.style.animation =
-                "none";
 
-            void countdownNumber.offsetWidth;
+            /*
+             * Если камера выключена —
+             * включаем.
+             */
 
-            countdownNumber.style.animation =
-                "countdown-pop 0.8s ease";
+            if (!stream) {
 
-            await new Promise(
-                resolve =>
-                    setTimeout(
-                        resolve,
-                        1000
-                    )
-            );
+                await startCamera();
+
+            }
+
+
+            if (stream) {
+
+                await startCountdown();
+
+            }
+
         }
-
-        countdown.classList.add(
-            "hidden"
-        );
-
-        cameraCard.classList.remove(
-            "robot-counting"
-        );
-
-        snapshot.classList.remove(
-            "hidden"
-        );
-
-        status("📸 Снимок!");
-
-        // Делаем фото
-        await takePhoto();
-
-        await new Promise(
-            resolve =>
-                setTimeout(
-                    resolve,
-                    700
-                )
-        );
-
-        snapshot.classList.add(
-            "hidden"
-        );
-
-        // Автоматически сохраняем
-        await uploadPhoto();
 
     } catch (error) {
 
         console.error(
-            "Ошибка автоматического селфи:",
+            "Robot polling error:",
             error
         );
 
-        countdown.classList.add(
-            "hidden"
-        );
-
-        snapshot.classList.add(
-            "hidden"
-        );
-
-        cameraCard.classList.remove(
-            "robot-counting"
-        );
-
-        status(
-            "❌ Ошибка создания фото: " +
-            error.message
-        );
-
-    } finally {
-
-        captureInProgress = false;
     }
+
 }
 
 
-/* =========================
-   КНОПКИ
-   ========================= */
+/* =========================================================
+   START ROBOT POLLING
+========================================================= */
 
-startCameraButton.addEventListener(
-    "click",
-    startCamera
-);
+function startRobotPolling() {
+
+    if (robotPolling) {
+        return;
+    }
 
 
-takePhotoButton.addEventListener(
-    "click",
-    async () => {
+    robotPolling =
+        setInterval(
+            checkRobotCommand,
+            500
+        );
 
-        try {
+}
 
-            await takePhoto();
 
-            status(
-                "Фото готово. Можно сохранить."
-            );
+/* =========================================================
+   BUTTON EVENTS
+========================================================= */
 
-        } catch (error) {
+startCameraButton
+    .addEventListener(
+        "click",
+        startCamera
+    );
 
-            status(
-                "❌ " + error.message
-            );
+
+rotateCameraButton
+    .addEventListener(
+        "click",
+        rotateCamera
+    );
+
+
+takePhotoButton
+    .addEventListener(
+        "click",
+        takePhoto
+    );
+
+
+stopCameraButton
+    .addEventListener(
+        "click",
+        stopCamera
+    );
+
+
+savePhotoButton
+    .addEventListener(
+        "click",
+        savePhoto
+    );
+
+
+retakePhotoButton
+    .addEventListener(
+        "click",
+        retakePhoto
+    );
+
+
+refreshGalleryButton
+    .addEventListener(
+        "click",
+        loadGallery
+    );
+
+
+/* =========================================================
+   MODAL EVENTS
+========================================================= */
+
+closeModalButton
+    .addEventListener(
+        "click",
+        closePhoto
+    );
+
+
+prevPhotoButton
+    .addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            showPreviousPhoto();
+
         }
+    );
+
+
+nextPhotoButton
+    .addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            showNextPhoto();
+
+        }
+    );
+
+
+/*
+ * Клик по тёмному фону закрывает просмотр.
+ */
+
+photoModal.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target ===
+            photoModal
+        ) {
+
+            closePhoto();
+
+        }
+
     }
 );
 
 
-switchCameraButton.addEventListener(
-    "click",
-    switchCamera
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            !photoModal
+                .classList
+                .contains("show")
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            event.key ===
+            "Escape"
+        ) {
+
+            closePhoto();
+
+        }
+
+
+        if (
+            event.key ===
+            "ArrowLeft"
+        ) {
+
+            showPreviousPhoto();
+
+        }
+
+
+        if (
+            event.key ===
+            "ArrowRight"
+        ) {
+
+            showNextPhoto();
+
+        }
+
+    }
 );
 
 
-uploadPhotoButton.addEventListener(
-    "click",
-    uploadPhoto
+/* =========================================================
+   SWIPE
+========================================================= */
+
+let touchStartX = 0;
+
+let touchEndX = 0;
+
+
+photoModal.addEventListener(
+    "touchstart",
+    event => {
+
+        touchStartX =
+            event
+                .changedTouches[0]
+                .screenX;
+
+    },
+    {
+        passive: true
+    }
 );
 
 
-retakePhotoButton.addEventListener(
-    "click",
-    retakePhoto
+photoModal.addEventListener(
+    "touchend",
+    event => {
+
+        touchEndX =
+            event
+                .changedTouches[0]
+                .screenX;
+
+
+        const difference =
+            touchEndX -
+            touchStartX;
+
+
+        if (
+            Math.abs(difference) >
+            50
+        ) {
+
+            if (
+                difference < 0
+            ) {
+
+                showNextPhoto();
+
+            } else {
+
+                showPreviousPhoto();
+
+            }
+
+        }
+
+    },
+    {
+        passive: true
+    }
 );
 
 
-/* =========================
-   СТАРТ
-   ========================= */
+/* =========================================================
+   INITIALIZATION
+========================================================= */
 
-loadGallery();
+async function init() {
 
-setInterval(
-    checkRobotSignal,
-    500
-);
+    status(
+        "🔄 Загружаем фотографии..."
+    );
+
+
+    await loadGallery();
+
+
+    status(
+        "✅ Готово. Включите камеру."
+    );
+
+
+    startRobotPolling();
+
+}
+
+
+init();
